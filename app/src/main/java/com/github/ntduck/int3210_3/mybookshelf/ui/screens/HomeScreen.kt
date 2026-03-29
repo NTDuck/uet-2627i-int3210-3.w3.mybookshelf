@@ -78,7 +78,7 @@ fun HomeScreen(
 @Composable
 fun BooksGrid(books: List<BookItem>, onBookClick: (BookItem) -> Unit) {
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(120.dp),
+        columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(8.dp)
     ) {
         items(books) { book ->

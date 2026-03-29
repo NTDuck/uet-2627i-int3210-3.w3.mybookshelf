@@ -1,6 +1,8 @@
 package com.github.ntduck.int3210_3.mybookshelf.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -38,6 +40,7 @@ fun BookScreen(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             book?.let {
                 AsyncImage(
@@ -52,6 +55,20 @@ fun BookScreen(
                     text = it.volumeInfo.title,
                     style = MaterialTheme.typography.headlineSmall
                 )
+                it.volumeInfo.authors?.let { authors ->
+                    Text(
+                        text = "By ${authors.joinToString(", ")}",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                it.volumeInfo.description?.let { description ->
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
     }

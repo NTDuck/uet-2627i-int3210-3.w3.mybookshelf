@@ -1,7 +1,5 @@
 package com.github.ntduck.int3210_3.mybookshelf.models
 
-import com.google.gson.annotations.SerializedName
-
 data class BookQueryResponse(
     val items: List<BookItem>?
 )
@@ -13,6 +11,8 @@ data class BookItem(
 
 data class VolumeInfo(
     val title: String,
+    val authors: List<String>?,
+    val description: String?,
     val imageLinks: ImageLinks?
 )
 
