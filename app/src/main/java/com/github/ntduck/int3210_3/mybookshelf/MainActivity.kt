@@ -4,11 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.github.ntduck.int3210_3.mybookshelf.ui.screens.BookScreen
 import com.github.ntduck.int3210_3.mybookshelf.ui.screens.BookViewModel
 import com.github.ntduck.int3210_3.mybookshelf.ui.screens.HomeScreen
@@ -40,20 +44,28 @@ fun BooksApp() {
 
     NavHost(
         navController = navController,
-        startDestination = BookshelfScreen.Home.name
+        startDestination = BookshelfScreen.Home.name,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None }
     ) {
         composable(route = BookshelfScreen.Home.name) {
             HomeScreen(
                 viewModel = homeViewModel,
                 onBookClick = { book ->
-                    bookViewModel.selectedBook = book
-                    navController.navigate(BookshelfScreen.Detail.name)
+                    navController.navigate("${BookshelfScreen.Detail.name}/${book.id}")
                 }
             )
         }
-        composable(route = BookshelfScreen.Detail.name) {
+        composable(
+            route = "${BookshelfScreen.Detail.name}/{bookId}",
+            arguments = listOf(navArgument("bookId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
             BookScreen(
                 viewModel = bookViewModel,
+                bookId = bookId,
                 onBackClick = {
                     navController.popBackStack()
                 }
