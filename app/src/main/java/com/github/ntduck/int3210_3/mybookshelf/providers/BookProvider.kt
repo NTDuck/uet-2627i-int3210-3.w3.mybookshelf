@@ -1,5 +1,6 @@
-package com.github.ntduck.int3210_3.mybookshelf
+package com.github.ntduck.int3210_3.mybookshelf.providers
 
+import com.github.ntduck.int3210_3.mybookshelf.models.BookQueryResponse
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
@@ -12,13 +13,13 @@ private val retrofit = Retrofit.Builder()
     .baseUrl(BASE_URL)
     .build()
 
-interface BooksApiService {
+interface BookProvider {
     @GET("volumes")
     suspend fun getBooks(@Query("q") query: String): BookQueryResponse
 }
 
-object BooksApi {
-    val retrofitService: BooksApiService by lazy {
-        retrofit.create(BooksApiService::class.java)
+object RetrofitBookProvider {
+    val retrofitService: BookProvider by lazy {
+        retrofit.create(BookProvider::class.java)
     }
 }

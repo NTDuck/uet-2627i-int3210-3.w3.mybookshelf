@@ -4,64 +4,60 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.github.ntduck.int3210_3.mybookshelf.ui.screens.BookScreen
+import com.github.ntduck.int3210_3.mybookshelf.ui.screens.BookViewModel
+import com.github.ntduck.int3210_3.mybookshelf.ui.screens.HomeScreen
+import com.github.ntduck.int3210_3.mybookshelf.ui.screens.HomeViewModel
 import com.github.ntduck.int3210_3.mybookshelf.ui.theme.MybookshelfTheme
 
+enum class BookshelfScreen {
+    Home,
+    Detail
+}
+
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             MybookshelfTheme {
-                val viewModel: BooksViewModel = viewModel()
-                Scaffold(
-                    topBar = {
-                        CenterAlignedTopAppBar(
-                            title = { Text("Bookshelf") }
-                        )
-                    }
-                ) { paddingValues ->
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                        color = MaterialTheme.colorScheme.background
-                    ) {
-                        BookshelfScreen(
-                            booksUiState = viewModel.booksUiState,
-                            retryAction = { viewModel.getBooks() }
-                        )
-                    }
-                }
+                BooksApp()
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun BooksApp() {
+    val navController = rememberNavController()
+    val homeViewModel: HomeViewModel = viewModel()
+    val bookViewModel: BookViewModel = viewModel()
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MybookshelfTheme {
-        Greeting("Android")
+    NavHost(
+        navController = navController,
+        startDestination = BookshelfScreen.Home.name
+    ) {
+        composable(route = BookshelfScreen.Home.name) {
+            HomeScreen(
+                viewModel = homeViewModel,
+                onBookClick = { book ->
+                    bookViewModel.selectedBook = book
+                    navController.navigate(BookshelfScreen.Detail.name)
+                }
+            )
+        }
+        composable(route = BookshelfScreen.Detail.name) {
+            BookScreen(
+                viewModel = bookViewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 }

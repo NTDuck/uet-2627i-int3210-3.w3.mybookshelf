@@ -1,4 +1,4 @@
-package com.github.ntduck.int3210_3.mybookshelf
+package com.github.ntduck.int3210_3.mybookshelf.models
 
 import com.google.gson.annotations.SerializedName
 
@@ -19,8 +19,6 @@ data class VolumeInfo(
 data class ImageLinks(
     val thumbnail: String
 ) {
-    // The Google Books API often returns HTTP instead of HTTPS,
-    // which Coil blocks by default. This fixes it.
     val httpsThumbnail: String
         get() = thumbnail.replace("http:", "https:")
 }
