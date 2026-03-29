@@ -4,8 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -19,9 +17,9 @@ import com.github.ntduck.int3210_3.mybookshelf.ui.screens.HomeScreen
 import com.github.ntduck.int3210_3.mybookshelf.ui.screens.HomeViewModel
 import com.github.ntduck.int3210_3.mybookshelf.ui.theme.MybookshelfTheme
 
-enum class BookshelfScreen {
+enum class Screen {
     Home,
-    Detail
+    Book,
 }
 
 class MainActivity : ComponentActivity() {
@@ -37,35 +35,30 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun BooksApp() {
+private fun BooksApp() {
     val navController = rememberNavController()
     val homeViewModel: HomeViewModel = viewModel()
     val bookViewModel: BookViewModel = viewModel()
 
     NavHost(
         navController = navController,
-        startDestination = BookshelfScreen.Home.name,
-        enterTransition = { EnterTransition.None },
-        exitTransition = { ExitTransition.None },
-        popEnterTransition = { EnterTransition.None },
-        popExitTransition = { ExitTransition.None }
+        startDestination = Screen.Home.name,
     ) {
-        composable(route = BookshelfScreen.Home.name) {
+        composable(route = Screen.Home.name) {
             HomeScreen(
                 viewModel = homeViewModel,
                 onBookClick = { book ->
-                    navController.navigate("${BookshelfScreen.Detail.name}/${book.id}")
+                    navController.navigate("${Screen.Book.name}/${book.id}")
                 }
             )
         }
         composable(
-            route = "${BookshelfScreen.Detail.name}/{bookId}",
+            route = "${Screen.Book.name}/{bookId}",
             arguments = listOf(navArgument("bookId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
             BookScreen(
                 viewModel = bookViewModel,
-                bookId = bookId,
+                bookId = backStackEntry.arguments?.getString("bookId") ?: "",
                 onBackClick = {
                     navController.popBackStack()
                 }

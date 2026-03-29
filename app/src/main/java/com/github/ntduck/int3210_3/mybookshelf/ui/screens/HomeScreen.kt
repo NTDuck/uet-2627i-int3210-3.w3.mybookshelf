@@ -14,19 +14,20 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
-import com.github.ntduck.int3210_3.mybookshelf.models.BookItem
+import com.github.ntduck.int3210_3.mybookshelf.models.Book
+import com.github.ntduck.int3210_3.mybookshelf.providers.BookProvider
 import com.github.ntduck.int3210_3.mybookshelf.providers.RetrofitBookProvider
 import kotlinx.coroutines.launch
 
-sealed interface HomeUiState {
-    data class Success(val books: List<BookItem>) : HomeUiState
-    object Error : HomeUiState
-    object Loading : HomeUiState
-}
+class HomeViewModel(private val bookProvider: BookProvider = RetrofitBookProvider()) : ViewModel() {
+    sealed interface State {
+        data class Success(val books: List<Book>) : State
+        object Error : State
+        object Loading : State
+    }
 
-class HomeViewModel : ViewModel() {
-    var homeUiState: HomeUiState by mutableStateOf(HomeUiState.Loading)
-    var searchQuery by mutableStateOf("cat")
+    var state: State by mutableStateOf(State.Loading)
+    var query by mutableStateOf("cat")
 
     init {
         getBooks()
@@ -34,12 +35,11 @@ class HomeViewModel : ViewModel() {
 
     fun getBooks() {
         viewModelScope.launch {
-            homeUiState = HomeUiState.Loading
-            try {
-                val response = RetrofitBookProvider.retrofitService.getBooks(searchQuery)
-                homeUiState = HomeUiState.Success(response.items ?: emptyList())
-            } catch (e: Exception) {
-                homeUiState = HomeUiState.Error
+            state = State.Loading
+            state = try {
+                State.Success(books = bookProvider.getBooks(query).items ?: emptyList())
+            } catch (_: Exception) {
+                State.Error
             }
         }
     }
@@ -48,18 +48,18 @@ class HomeViewModel : ViewModel() {
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    onBookClick: (BookItem) -> Unit
+    onBookClick: (Book) -> Unit
 ) {
     Column {
         Text(
-            text = "My Bookshelf",
+            text = "mybookshelf",
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(16.dp)
         )
         OutlinedTextField(
-            value = viewModel.searchQuery,
+            value = viewModel.query,
             onValueChange = { 
-                viewModel.searchQuery = it
+                viewModel.query = it
                 viewModel.getBooks()
             },
             label = { Text("Search") },
@@ -67,16 +67,16 @@ fun HomeScreen(
                 .fillMaxWidth()
                 .padding(16.dp)
         )
-        when (val state = viewModel.homeUiState) {
-            is HomeUiState.Loading -> LoadingScreen()
-            is HomeUiState.Success -> BooksGrid(state.books, onBookClick)
-            is HomeUiState.Error -> ErrorScreen { viewModel.getBooks() }
+        when (val state = viewModel.state) {
+            is HomeViewModel.State.Loading -> LoadingScreen()
+            is HomeViewModel.State.Success -> BooksGrid(state.books, onBookClick)
+            is HomeViewModel.State.Error -> ErrorScreen { viewModel.getBooks() }
         }
     }
 }
 
 @Composable
-fun BooksGrid(books: List<BookItem>, onBookClick: (BookItem) -> Unit) {
+fun BooksGrid(books: List<Book>, onBookClick: (Book) -> Unit) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(8.dp)

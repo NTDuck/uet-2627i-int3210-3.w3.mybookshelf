@@ -4,37 +4,35 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
-import com.github.ntduck.int3210_3.mybookshelf.models.BookItem
+import com.github.ntduck.int3210_3.mybookshelf.models.Book
+import com.github.ntduck.int3210_3.mybookshelf.providers.BookProvider
 import com.github.ntduck.int3210_3.mybookshelf.providers.RetrofitBookProvider
 import kotlinx.coroutines.launch
 
-sealed interface BookUiState {
-    data class Success(val book: BookItem) : BookUiState
-    object Error : BookUiState
-    object Loading : BookUiState
-}
+class BookViewModel(private val bookProvider: BookProvider = RetrofitBookProvider()) : ViewModel() {
+    sealed interface State {
+        data class Success(val book: Book) : State
+        object Error : State
+        object Loading : State
+    }
 
-class BookViewModel : ViewModel() {
-    var bookUiState: BookUiState by mutableStateOf(BookUiState.Loading)
-    var selectedBook: BookItem? by mutableStateOf(null)
+    var state: State by mutableStateOf(State.Loading)
 
     fun getBook(id: String) {
         viewModelScope.launch {
-            bookUiState = BookUiState.Loading
-            try {
-                val book = RetrofitBookProvider.retrofitService.getBook(id)
-                bookUiState = BookUiState.Success(book)
-            } catch (e: Exception) {
-                bookUiState = BookUiState.Error
+            state = State.Loading
+            state = try {
+                State.Success(book = bookProvider.getBook(id))
+            } catch (_: Exception) {
+                State.Error
             }
         }
     }
@@ -57,24 +55,24 @@ fun BookScreen(
                 title = { Text("Book Detail") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
-            when (val state = viewModel.bookUiState) {
-                is BookUiState.Loading -> LoadingScreen()
-                is BookUiState.Error -> ErrorScreen { viewModel.getBook(bookId) }
-                is BookUiState.Success -> BookDetail(state.book)
+            when (val state = viewModel.state) {
+                is BookViewModel.State.Loading -> LoadingScreen()
+                is BookViewModel.State.Error -> ErrorScreen { viewModel.getBook(id = bookId) }
+                is BookViewModel.State.Success -> BookDetail(book = state.book)
             }
         }
     }
 }
 
 @Composable
-fun BookDetail(book: BookItem) {
+fun BookDetail(book: Book) {
     Column(
         modifier = Modifier
             .fillMaxSize()

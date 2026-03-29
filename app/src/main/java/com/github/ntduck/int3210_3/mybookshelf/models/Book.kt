@@ -1,10 +1,10 @@
 package com.github.ntduck.int3210_3.mybookshelf.models
 
-data class BookQueryResponse(
-    val items: List<BookItem>?
+data class Books(
+    val items: List<Book>?
 )
 
-data class BookItem(
+data class Book(
     val id: String,
     val volumeInfo: VolumeInfo
 )

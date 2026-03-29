@@ -1,30 +1,33 @@
 package com.github.ntduck.int3210_3.mybookshelf.providers
 
-import com.github.ntduck.int3210_3.mybookshelf.models.BookItem
-import com.github.ntduck.int3210_3.mybookshelf.models.BookQueryResponse
+import com.github.ntduck.int3210_3.mybookshelf.models.Book
+import com.github.ntduck.int3210_3.mybookshelf.models.Books
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-private const val BASE_URL = "https://www.googleapis.com/books/v1/"
-
-private val retrofit = Retrofit.Builder()
-    .addConverterFactory(GsonConverterFactory.create())
-    .baseUrl(BASE_URL)
-    .build()
-
 interface BookProvider {
     @GET("volumes")
-    suspend fun getBooks(@Query("q") query: String): BookQueryResponse
+    suspend fun getBooks(@Query("q") query: String): Books
 
     @GET("volumes/{id}")
-    suspend fun getBook(@Path("id") id: String): BookItem
+    suspend fun getBook(@Path("id") id: String): Book
 }
 
-object RetrofitBookProvider {
-    val retrofitService: BookProvider by lazy {
-        retrofit.create(BookProvider::class.java)
+class RetrofitBookProvider(
+    private val retrofit: BookProvider = Retrofit.Builder()
+        .addConverterFactory(GsonConverterFactory.create())
+        .baseUrl("https://www.googleapis.com/books/v1/")
+        .build()
+        .create(BookProvider::class.java)
+): BookProvider {
+    override suspend fun getBooks(query: String): Books {
+        return retrofit.getBooks(query)
+    }
+
+    override suspend fun getBook(id: String): Book {
+        return retrofit.getBook(id)
     }
 }
